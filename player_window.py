@@ -1,12 +1,29 @@
 from PyQt5.QtWidgets import *
 
 
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.create_ui()
 
-        self.setGeometry(300, 300, 320, 180)
-        self.setWindowTitle("GGL_Player")
+    def create_ui(self):
+        self.setGeometry(300, 300, 960, 540)
+        self.setMinimumSize(960, 540)
+
+        self.setWindowTitle("Terpsi")
 
         self.show()
+
+
+# class MainWindow(QWidget):
+#
+#     def __init__(self):
+#         super().__init__()
+#
+#         self.setGeometry(300, 300, 960, 540)
+#         self.setMinimumSize(960, 540)
+#
+#         self.setWindowTitle("GGL_Player")
+#
+#         self.show()
