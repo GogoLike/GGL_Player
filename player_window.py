@@ -15,15 +15,3 @@ class MainWindow(QMainWindow):
 
         self.show()
 
-
-# class MainWindow(QWidget):
-#
-#     def __init__(self):
-#         super().__init__()
-#
-#         self.setGeometry(300, 300, 960, 540)
-#         self.setMinimumSize(960, 540)
-#
-#         self.setWindowTitle("GGL_Player")
-#
-#         self.show()
