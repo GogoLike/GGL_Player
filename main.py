@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtMultimedia import *
 from PyQt5.QtCore import *
+import sqlite3
 
 
 class MainWindow(QMainWindow):
@@ -43,7 +44,7 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
-    print("GGL_Player is started")
+    print("Terapsi is started")
 
     app = QApplication(sys.argv)
     main_window = MainWindow()
