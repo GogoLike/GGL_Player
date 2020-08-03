@@ -14,6 +14,8 @@ class MainWindow(QWidget):
         self.setMinimumSize(960, 540)
         self.setWindowTitle("Terapsi")
 
+        self.platform = sys.platform
+
         try:
             self.present_song_url = main_database.get_url_from_number(1)
         except TypeError:
@@ -130,6 +132,7 @@ class MainWindow(QWidget):
     def get_song_path(self):
         self.file_list = QFileDialog.getOpenFileNames()[0]
         for file in self.file_list:
+            file = file.replace('\\', '/')
             TPDatabase.add_in_main_playlist(main_database, file)
         self.add_in_main_playlist()
 
@@ -234,8 +237,6 @@ class TPDatabase:
 
 if __name__ == '__main__':
     print("Terapsi is started")
-
-    print(sys.platform)
 
     app = QApplication(sys.argv)
 
