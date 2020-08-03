@@ -235,6 +235,8 @@ class TPDatabase:
 if __name__ == '__main__':
     print("Terapsi is started")
 
+    print(sys.platform)
+
     app = QApplication(sys.argv)
 
     main_database = TPDatabase()
