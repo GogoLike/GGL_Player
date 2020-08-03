@@ -14,16 +14,11 @@ class MainWindow(QWidget):
         self.setMinimumSize(960, 540)
         self.setWindowTitle("Terapsi")
 
-        self.present_song_url = QUrl("""file:///home/igor/Музыка/The_Pixes_-_Whеrе_Is_Mу_Мind.mp3""")
-        self.present_song_number = 0
+        try:
+            self.present_song_url = main_database.get_url_from_number(1)
+        except TypeError:
+            self.present_song_url = QUrl()
 
-        self.next_song_url = QUrl()
-        self.next_song_number = 0
-
-        self.previous_song_url = QUrl()
-        self.previous_song_number = 0
-
-        self.song_url = QUrl()
         self.player = QMediaPlayer()
         self.player.setMedia(QMediaContent(self.present_song_url))
 
@@ -49,22 +44,33 @@ class MainWindow(QWidget):
         self.list_widget_2.setFixedWidth(300)
         self.list_widget_3.setFixedWidth(120)
 
+        self.list_widget_1.clicked.connect(self.l_widg_1_conn)
+        self.list_widget_2.clicked.connect(self.l_widg_2_conn)
+        self.list_widget_3.clicked.connect(self.l_widg_3_conn)
+
         self.play_btn = QPushButton("Play", self)
         self.play_btn.clicked.connect(self.play_song)
 
         self.pause_btn = QPushButton("Pause", self)
-        self.pause_btn.setEnabled(False)
         self.pause_btn.clicked.connect(self.pause_song)
 
         self.file_btn = QPushButton("File", self)
         self.file_btn.clicked.connect(self.get_song_path)
 
         self.stop_btn = QPushButton("Stop", self)
-        self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self.stop_song)
 
         self.clear_btn = QPushButton("Clear", self)
         self.clear_btn.clicked.connect(self.clear_playlist)
+
+        if TPDatabase.how_many_in_main_playlist(main_database) == 0:
+            self.play_btn.setEnabled(False)
+            self.pause_btn.setEnabled(False)
+            self.stop_btn.setEnabled(False)
+        else:
+            self.play_btn.setEnabled(True)
+            self.pause_btn.setEnabled(False)
+            self.stop_btn.setEnabled(False)
 
         main_hbox_1 = QHBoxLayout()
         main_hbox_1.addWidget(self.name_label)
@@ -98,6 +104,29 @@ class MainWindow(QWidget):
 
         self.show()
 
+    def l_widg_1_conn(self):
+        row_num = self.list_widget_1.currentRow()
+        self.list_widget_2.setCurrentRow(row_num)
+        self.list_widget_3.setCurrentRow(row_num)
+        self.play_from_num(row_num)
+
+    def l_widg_2_conn(self):
+        row_num = self.list_widget_2.currentRow()
+        self.list_widget_1.setCurrentRow(row_num)
+        self.list_widget_3.setCurrentRow(row_num)
+        self.play_from_num(row_num)
+
+    def l_widg_3_conn(self):
+        row_num = self.list_widget_3.currentRow()
+        self.list_widget_2.setCurrentRow(row_num)
+        self.list_widget_1.setCurrentRow(row_num)
+        self.play_from_num(row_num)
+
+    def play_from_num(self, num):
+        url = main_database.get_url_from_number(num + 1)
+        self.player.setMedia(QMediaContent(url))
+        self.play_song()
+
     def get_song_path(self):
         self.file_list = QFileDialog.getOpenFileNames()[0]
         for file in self.file_list:
@@ -108,8 +137,14 @@ class MainWindow(QWidget):
         for file in self.file_list:
             audio_file = mutagen.File(file)
 
-            song_name = str(audio_file.tags.getall('TIT2')[0])
-            song_singer = str(audio_file.tags.getall('TPE1')[0])
+            try:
+                song_name = str(audio_file.tags.getall('TIT2')[0])
+            except IndexError:
+                song_name = str(file).split("/")[-1].split(".")[0]
+            try:
+                song_singer = str(audio_file.tags.getall('TPE1')[0])
+            except IndexError:
+                song_singer = "Unknown"
             song_length = str(audio_file.info.length)
 
             self.list_widget_1.addItem(QListWidgetItem(song_name))
@@ -126,7 +161,7 @@ class MainWindow(QWidget):
         self.player.pause()
         self.play_btn.setEnabled(True)
         self.pause_btn.setEnabled(False)
-        self.stop_btn.setEnabled(False)
+        self.stop_btn.setEnabled(True)
 
     def stop_song(self):
         self.player.stop()
@@ -141,6 +176,12 @@ class MainWindow(QWidget):
         self.list_widget_2.clear()
         self.list_widget_3.clear()
 
+        self.stop_song()
+
+        self.play_btn.setEnabled(False)
+        self.pause_btn.setEnabled(False)
+        self.stop_btn.setEnabled(False)
+
         TPDatabase.delete_all_from_main_playlist(main_database)
 
 
@@ -149,20 +190,20 @@ class TPDatabase:
         self.conn = sqlite3.connect("""Terapsi.db""")
         self.cursor = self.conn.cursor()
 
+    def how_many_in_main_playlist(self):
+        self.cursor.execute("""SELECT COUNT(*) FROM Main_Playlist;""")
+        count = int(self.cursor.fetchone()[0])
+        self.conn.commit()
+        return count
+
     def add_in_main_playlist(self, song_path):
         self.cursor.execute("""SELECT COUNT(*) FROM Main_Playlist;""")
         num = str(int(self.cursor.fetchone()[0]) + 1)
 
-        audio_file = mutagen.File(song_path)
-
-        song_name = str(audio_file.tags.getall('TIT2')[0])
-        song_singer = str(audio_file.tags.getall('TPE1')[0])
-        song_length = str(audio_file.info.length)
-
-        song_data = num + ", '" + song_name + "', '" + song_singer + "', '" + song_path + "', " + song_length
+        song_data = num + ", '" + song_path + "'"
 
         self.cursor.execute(
-            """INSERT INTO Main_Playlist (num, song_name, song_singer, song_path, song_length) VALUES (""" + song_data + """);""")
+            """INSERT INTO Main_Playlist (num, song_path) VALUES (""" + song_data + """);""")
 
         self.conn.commit()
 
@@ -176,16 +217,15 @@ class TPDatabase:
 
         return file_list
 
-    def read_main_playlist_url(self):
-        self.cursor.execute("""SELECT song_path FROM Main_Playlist;""")
-        file_list = []
-        for path in self.cursor.fetchall():
-            url = QUrl("file://" + str(path[0]))
-            file_list.append(url)
+    def get_url_from_number(self, number):
+        number = str(number)
+        self.cursor.execute("""SELECT song_path FROM Main_Playlist WHERE num = """ + number + """;""")
+        path = str(self.cursor.fetchone()[0])
+        url = QUrl("file://" + path)
 
         self.conn.commit()
 
-        return file_list
+        return url
 
     def delete_all_from_main_playlist(self):
         self.cursor.execute("""DELETE FROM Main_Playlist WHERE num""")
