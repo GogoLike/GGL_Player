@@ -224,7 +224,7 @@ class TPDatabase:
         number = str(number)
         self.cursor.execute("""SELECT song_path FROM Main_Playlist WHERE num = """ + number + """;""")
         path = str(self.cursor.fetchone()[0])
-        url = QUrl("file://" + path)
+        url = QUrl("file:///" + path)
 
         self.conn.commit()
 
