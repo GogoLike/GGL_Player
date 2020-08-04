@@ -8,7 +8,7 @@ For try to start:
 
 copy in command line in player directory
 
-  python3 main.py
+>python3 main.py
   
 # =====================================================
 
