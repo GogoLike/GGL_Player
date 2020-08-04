@@ -21,6 +21,8 @@ class MainWindow(QWidget):
         except TypeError:
             self.present_song_url = QUrl()
 
+        self.present_song_num = 1
+
         self.player = QMediaPlayer()
         self.player.setMedia(QMediaContent(self.present_song_url))
 
@@ -110,22 +112,22 @@ class MainWindow(QWidget):
         row_num = self.list_widget_1.currentRow()
         self.list_widget_2.setCurrentRow(row_num)
         self.list_widget_3.setCurrentRow(row_num)
-        self.play_from_num(row_num)
+        self.play_from_num(row_num + 1)
 
     def l_widg_2_conn(self):
         row_num = self.list_widget_2.currentRow()
         self.list_widget_1.setCurrentRow(row_num)
         self.list_widget_3.setCurrentRow(row_num)
-        self.play_from_num(row_num)
+        self.play_from_num(row_num + 1)
 
     def l_widg_3_conn(self):
         row_num = self.list_widget_3.currentRow()
         self.list_widget_2.setCurrentRow(row_num)
         self.list_widget_1.setCurrentRow(row_num)
-        self.play_from_num(row_num)
+        self.play_from_num(row_num + 1)
 
     def play_from_num(self, num):
-        url = main_database.get_url_from_number(num + 1)
+        url = main_database.get_url_from_number(num)
         self.player.setMedia(QMediaContent(url))
         self.play_song()
 
