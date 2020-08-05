@@ -145,6 +145,8 @@ class MainWindow(QWidget):
         self.add_in_main_playlist()
 
         self.play_btn.setEnabled(True)
+        self.next_btn.setEnabled(True)
+        self.previous_btn.setEnabled(True)
 
     def add_in_main_playlist(self):
         i = 1
