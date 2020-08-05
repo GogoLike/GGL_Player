@@ -14,17 +14,13 @@ class MainWindow(QWidget):
         self.setMinimumSize(960, 540)
         self.setWindowTitle("Terapsi")
 
-        self.platform = sys.platform
+        self.playlist = QMediaPlaylist()
 
-        try:
-            self.present_song_url = main_database.get_url_from_number(1)
-        except TypeError:
-            self.present_song_url = QUrl()
-
-        self.present_song_num = 1
+        for i in range(1, main_database.how_many_in_main_playlist() + 1):
+            self.playlist.addMedia(QMediaContent(main_database.get_url_from_number(i)))
 
         self.player = QMediaPlayer()
-        self.player.setMedia(QMediaContent(self.present_song_url))
+        self.player.setPlaylist(self.playlist)
 
         self.name_label = QLabel()
         self.singer_label = QLabel()
@@ -52,17 +48,23 @@ class MainWindow(QWidget):
         self.list_widget_2.clicked.connect(self.l_widg_2_conn)
         self.list_widget_3.clicked.connect(self.l_widg_3_conn)
 
+        self.file_btn = QPushButton("File", self)
+        self.file_btn.clicked.connect(self.get_song_path)
+
+        self.previous_btn = QPushButton("Previous", self)
+        self.previous_btn.clicked.connect(self.previous_song)
+
         self.play_btn = QPushButton("Play", self)
         self.play_btn.clicked.connect(self.play_song)
 
         self.pause_btn = QPushButton("Pause", self)
         self.pause_btn.clicked.connect(self.pause_song)
 
-        self.file_btn = QPushButton("File", self)
-        self.file_btn.clicked.connect(self.get_song_path)
-
         self.stop_btn = QPushButton("Stop", self)
         self.stop_btn.clicked.connect(self.stop_song)
+
+        self.next_btn = QPushButton("Next", self)
+        self.next_btn.clicked.connect(self.next_song)
 
         self.clear_btn = QPushButton("Clear", self)
         self.clear_btn.clicked.connect(self.clear_playlist)
@@ -71,6 +73,8 @@ class MainWindow(QWidget):
             self.play_btn.setEnabled(False)
             self.pause_btn.setEnabled(False)
             self.stop_btn.setEnabled(False)
+            self.next_btn.setEnabled(False)
+            self.previous_btn.setEnabled(False)
         else:
             self.play_btn.setEnabled(True)
             self.pause_btn.setEnabled(False)
@@ -90,9 +94,11 @@ class MainWindow(QWidget):
         main_hbox_3 = QHBoxLayout()
         main_hbox_3.addWidget(self.file_btn)
         main_hbox_3.addStretch()
+        main_hbox_3.addWidget(self.previous_btn)
         main_hbox_3.addWidget(self.play_btn)
         main_hbox_3.addWidget(self.pause_btn)
         main_hbox_3.addWidget(self.stop_btn)
+        main_hbox_3.addWidget(self.next_btn)
         main_hbox_3.addStretch()
         main_hbox_3.addWidget(self.clear_btn)
 
@@ -138,7 +144,10 @@ class MainWindow(QWidget):
             TPDatabase.add_in_main_playlist(main_database, file)
         self.add_in_main_playlist()
 
+        self.play_btn.setEnabled(True)
+
     def add_in_main_playlist(self):
+        i = 1
         for file in self.file_list:
             audio_file = mutagen.File(file)
 
@@ -155,6 +164,10 @@ class MainWindow(QWidget):
             self.list_widget_1.addItem(QListWidgetItem(song_name))
             self.list_widget_2.addItem(QListWidgetItem(song_singer))
             self.list_widget_3.addItem(QListWidgetItem(song_length))
+
+            self.playlist.addMedia(QMediaContent(main_database.get_url_from_number(i)))
+
+            i += 1
 
     def play_song(self):
         self.player.play()
@@ -174,6 +187,12 @@ class MainWindow(QWidget):
         self.stop_btn.setEnabled(False)
         self.play_btn.setEnabled(True)
 
+    def next_song(self):
+        self.player.playlist().next()
+
+    def previous_song(self):
+        self.player.playlist().previous()
+
     def clear_playlist(self):
         self.file_list = []
 
@@ -181,11 +200,15 @@ class MainWindow(QWidget):
         self.list_widget_2.clear()
         self.list_widget_3.clear()
 
+        self.playlist.clear()
+
         self.stop_song()
 
         self.play_btn.setEnabled(False)
         self.pause_btn.setEnabled(False)
         self.stop_btn.setEnabled(False)
+        self.next_btn.setEnabled(False)
+        self.previous_btn.setEnabled(False)
 
         TPDatabase.delete_all_from_main_playlist(main_database)
 
